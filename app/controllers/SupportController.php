@@ -157,6 +157,94 @@ class SupportController {
         }
     }
 
-    public function deleteUser() {}
-    public function backupDatabase() {}
+        public function deleteUser() {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+            header("Location: /sistema/public/index.php?route=login"); exit();
+        }
+
+        $id = $_GET['id'] ?? null;
+        if ($id) {
+            try {
+                $db = new \App\Config\Database();
+                $pdo = $db->getConnection();
+                
+                // Evitar que el administrador se elimine a sí mismo
+                if ((int)$id === (int)$_SESSION['user']['id']) {
+                    header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("No puede eliminar su propia cuenta activa."));
+                    exit();
+                }
+
+                $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
+                $stmt->execute([$id]);
+                self::registrarLog('ELIMINAR USUARIO', "Se eliminó el usuario ID {$id}");
+                header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Usuario eliminado correctamente."));
+            } catch (\Exception $e) {
+                header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("No se puede eliminar el usuario porque tiene registros asociados."));
+            }
+            exit();
+        }
+    }
+        public function backupDatabase() {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+            header("Location: /sistema/public/index.php?route=login"); exit();
+        }
+
+        try {
+            $db = new \App\Config\Database();
+            $pdo = $db->getConnection();
+            
+            $tables = [];
+            $result = $pdo->query("SHOW TABLES");
+            while ($row = $result->fetch(\PDO::FETCH_NUM)) {
+                $tables[] = $row[0];
+            }
+
+            $sqlScript = "-- Backup Base de Datos SAVA
+-- Fecha: " . date('Y-m-d H:i:s') . "
+
+";
+            $sqlScript .= "SET FOREIGN_KEY_CHECKS=0;
+
+";
+
+            foreach ($tables as $table) {
+                $row2 = $pdo->query("SHOW CREATE TABLE {$table}")->fetch(\PDO::FETCH_NUM);
+                $sqlScript .= "
+
+" . $row2[1] . ";
+
+";
+                
+                $result = $pdo->query("SELECT * FROM {$table}");
+                while ($row = $result->fetch(\PDO::FETCH_NUM)) {
+                    $sqlScript .= "INSERT INTO {$table} VALUES(";
+                    for ($j = 0; $j < count($row); $j++) {
+                        $row[$j] = addslashes($row[$j]);
+                        $row[$j] = str_replace("
+", "\n", $row[$j]);
+                        if (isset($row[$j])) {
+                            $sqlScript .= '"' . $row[$j] . '"';
+                        } else {
+                            $sqlScript .= '""';
+                        }
+                        if ($j < (count($row) - 1)) { $sqlScript .= ','; }
+                    }
+                    $sqlScript .= ");
+";
+                }
+            }
+            $sqlScript .= "
+SET FOREIGN_KEY_CHECKS=1;";
+
+            self::registrarLog('RESPALDO BD', "Generación y descarga de copia de seguridad .sql");
+
+            header('Content-Type: application/octet-stream');
+            header('Content-Disposition: attachment; filename="backup_sava_' . date('Y-m-d_H-i-s') . '.sql"');
+            echo $sqlScript;
+            exit();
+        } catch (\Exception $e) {
+            header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("Error al generar el respaldo de la base de datos."));
+            exit();
+        }
+    }
 }
