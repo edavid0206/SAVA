@@ -8,6 +8,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --bg-color: #030712;
+            --gradient-bg: linear-gradient(135deg, #0f172a, #1e1b4b, #020617);
+            --card-bg: rgba(15, 23, 42, 0.65);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --input-bg: rgba(30, 41, 59, 0.5);
+            --input-border: rgba(255, 255, 255, 0.08);
+            --input-text: #fff;
+            --bubble-grad: radial-gradient(circle at 30% 30%, rgba(56, 189, 248, 0.45), rgba(14, 165, 233, 0.05));
+            --bubble-border: rgba(56, 189, 248, 0.25);
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f1f5f9;
+            --gradient-bg: linear-gradient(135deg, #e2e8f0, #cbd5e1, #f8fafc);
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(0, 0, 0, 0.08);
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --input-bg: rgba(241, 245, 249, 0.8);
+            --input-border: rgba(0, 0, 0, 0.1);
+            --input-text: #0f172a;
+            --bubble-grad: radial-gradient(circle at 30% 30%, rgba(2, 132, 199, 0.25), rgba(56, 189, 248, 0.05));
+            --bubble-border: rgba(2, 132, 199, 0.2);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -16,8 +44,8 @@
         }
 
         body {
-            background-color: #030712;
-            color: #f8fafc;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -25,6 +53,7 @@
             overflow: hidden;
             position: relative;
             padding: 20px;
+            transition: background-color 0.4s ease, color 0.4s ease;
         }
 
         /* Fondo dinámico de burbujas interactivas */
@@ -35,16 +64,17 @@
             width: 100vw;
             height: 100vh;
             z-index: 1;
-            background: linear-gradient(135deg, #0f172a, #1e1b4b, #020617);
+            background: var(--gradient-bg);
             overflow: hidden;
             pointer-events: none;
+            transition: background 0.4s ease;
         }
 
         .bubble {
             position: absolute;
             bottom: -100px;
-            background: radial-gradient(circle at 30% 30%, rgba(56, 189, 248, 0.45), rgba(14, 165, 233, 0.05));
-            border: 1px solid rgba(56, 189, 248, 0.25);
+            background: var(--bubble-grad);
+            border: 1px solid var(--bubble-border);
             border-radius: 50%;
             box-shadow: 0 0 20px rgba(56, 189, 248, 0.15), inset 0 0 15px rgba(255, 255, 255, 0.25);
             animation: riseAndWobble linear infinite;
@@ -55,7 +85,6 @@
             transition: transform 0.1s ease, opacity 0.3s ease;
         }
 
-        /* Animación de estallido al reventar */
         .bubble.pop {
             transform: scale(1.6) !important;
             opacity: 0 !important;
@@ -70,20 +99,21 @@
             100% { transform: translateY(-110vh) translateX(50px) scale(1.1); opacity: 0; }
         }
 
-        /* Tarjeta de Inicio de Sesión (Glassmorphism Avanzado) */
+        /* Tarjeta de Inicio de Sesión */
         .login-container {
             position: relative;
             z-index: 10;
             width: 100%;
             max-width: 440px;
-            background: rgba(15, 23, 42, 0.65);
+            background: var(--card-bg);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid var(--card-border);
             border-radius: 28px;
             padding: 40px 32px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
             animation: fadeInScale 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
         }
 
         @keyframes fadeInScale {
@@ -114,15 +144,17 @@
         .login-header h2 {
             font-size: 1.5rem;
             font-weight: 700;
-            color: #f8fafc;
+            color: var(--text-main);
             letter-spacing: -0.5px;
             margin-bottom: 8px;
+            transition: color 0.4s ease;
         }
 
         .login-header p {
             font-size: 0.88rem;
-            color: #94a3b8;
+            color: var(--text-muted);
             line-height: 1.5;
+            transition: color 0.4s ease;
         }
 
         .alert-error {
@@ -148,8 +180,9 @@
             display: block;
             font-size: 0.85rem;
             font-weight: 600;
-            color: #cbd5e1;
+            color: var(--text-muted);
             margin-bottom: 8px;
+            transition: color 0.4s ease;
         }
 
         .input-wrapper {
@@ -161,25 +194,24 @@
             left: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: #64748b;
+            color: var(--text-muted);
             font-size: 1rem;
             transition: color 0.3s ease;
         }
 
         .form-control {
             width: 100%;
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
             border-radius: 14px;
             padding: 14px 16px 14px 48px;
-            color: #fff;
+            color: var(--input-text);
             font-size: 0.95rem;
             outline: none;
             transition: all 0.3s ease;
         }
 
         .form-control:focus {
-            background: rgba(30, 41, 59, 0.8);
             border-color: #38bdf8;
             box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
         }
@@ -217,7 +249,33 @@
             text-align: center;
             margin-top: 25px;
             font-size: 0.8rem;
-            color: #64748b;
+            color: var(--text-muted);
+            transition: color 0.4s ease;
+        }
+
+        /* Botón de Cambio de Tema Estilo iPhone */
+        #theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            backdrop-filter: blur(10px);
+            color: var(--text-main);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 9999;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        #theme-toggle:hover {
+            transform: scale(1.05);
+            border-color: #38bdf8;
         }
     </style>
 </head>
@@ -225,6 +283,11 @@
 
     <!-- Fondo dinámico con burbujas interactivas -->
     <div class="bubbles-background" id="bubblesContainer"></div>
+
+    <!-- Botón Flotante de Cambio de Tema -->
+    <button id="theme-toggle" onclick="toggleTheme()" title="Cambiar Tema (Oscuro/Claro)">
+        <i id="theme-icon" class="fa-solid fa-moon"></i>
+    </button>
 
     <!-- Contenedor del Login -->
     <div class="login-container">
@@ -271,6 +334,35 @@
     </div>
 
     <script>
+        // Sincronización de Tema (Estilo iPhone / Horario / Memoria)
+        function applyTheme(theme) {
+            if (theme === "light") {
+                document.documentElement.setAttribute("data-theme", "light");
+                document.getElementById("theme-icon").className = "fa-solid fa-sun";
+            } else {
+                document.documentElement.removeAttribute("data-theme");
+                document.getElementById("theme-icon").className = "fa-solid fa-moon";
+            }
+        }
+
+        (function() {
+            const savedTheme = localStorage.getItem("sava_theme");
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else {
+                const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+                applyTheme(prefersDark ? "dark" : "light");
+            }
+        })();
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute("data-theme");
+            const newTheme = currentTheme === "light" ? "dark" : "light";
+            localStorage.setItem("sava_theme", newTheme);
+            applyTheme(newTheme);
+        }
+
+        // Lógica de burbujas interactivas
         document.addEventListener("DOMContentLoaded", function() {
             const container = document.getElementById('bubblesContainer');
             const bubbleCount = 26;
@@ -290,15 +382,8 @@
                 bubble.style.animationDuration = `${duration}s`;
                 bubble.style.animationDelay = `${delay}s`;
 
-                // Efecto al pasar el mouse (Hover) o tocar en celular -> ¡Se revienta!
-                bubble.addEventListener('mouseenter', function() {
-                    popBubble(bubble);
-                });
-
-                bubble.addEventListener('touchstart', function(e) {
-                    e.preventDefault();
-                    popBubble(bubble);
-                });
+                bubble.addEventListener('mouseenter', function() { popBubble(bubble); });
+                bubble.addEventListener('touchstart', function(e) { e.preventDefault(); popBubble(bubble); });
 
                 container.appendChild(bubble);
             }

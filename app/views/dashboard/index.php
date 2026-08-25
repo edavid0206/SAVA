@@ -1,5 +1,5 @@
 <?php
-// Vista del Dashboard con Intro y Burbujas de Niveles (SAVA)
+// Vista del Dashboard con Animación Suave y Elegante (SAVA)
 $rolUsuario = $user['rol'] ?? 'profesor'; // 'admin', 'administrativo', 'profesor'
 ?>
 <!DOCTYPE html>
@@ -145,26 +145,74 @@ $rolUsuario = $user['rol'] ?? 'profesor'; // 'admin', 'administrativo', 'profeso
             transform: translateY(-2px);
         }
 
-        /* Sección de Intro / Bienvenida */
+        /* Sección de Intro / Bienvenida con Transición Suave */
         .intro-section {
             text-align: center;
             margin: 30px 0;
             animation: fadeIn 1s ease forwards;
         }
 
-        .intro-section h1 {
-            font-size: clamp(2rem, 4vw, 2.8rem);
+        .brand-container {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.8rem, 3.5vw, 2.6rem);
             font-weight: 800;
             letter-spacing: -0.5px;
             margin-bottom: 10px;
+            white-space: nowrap;
+        }
+
+        .brand-fixed {
             background: linear-gradient(135deg, #fff, #93c5fd);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            opacity: 0;
+            animation: fadeInLetter 1s ease forwards;
+            animation-delay: 0.1s;
+        }
+
+        /* Acordeón horizontal suave y desvanecido */
+        .word-block {
+            display: inline-flex;
+            overflow: hidden;
+            max-width: 0;
+            opacity: 0;
+            white-space: nowrap;
+            background: linear-gradient(135deg, #93c5fd, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: expandSmooth 1.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            animation-delay: 0.4s;
+        }
+
+        @keyframes expandSmooth {
+            0% {
+                max-width: 0;
+                opacity: 0;
+                transform: scaleX(0.95);
+            }
+            100% {
+                max-width: 250px;
+                opacity: 1;
+                transform: scaleX(1);
+            }
+        }
+
+        @keyframes fadeInLetter {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .intro-section p {
             font-size: 1rem;
             color: #94a3b8;
+            opacity: 0;
+            animation: fadeInText 1.2s ease forwards 1s;
+        }
+
+        @keyframes fadeInText {
+            to { opacity: 1; }
         }
 
         /* Contenedor de las 3 Burbujas de Niveles */
@@ -194,7 +242,6 @@ $rolUsuario = $user['rol'] ?? 'profesor'; // 'admin', 'administrativo', 'profeso
             color: inherit;
         }
 
-        /* Burbuja Activa */
         .level-bubble.active {
             border-color: rgba(56, 189, 248, 0.4);
             background: rgba(15, 23, 42, 0.75);
@@ -207,7 +254,6 @@ $rolUsuario = $user['rol'] ?? 'profesor'; // 'admin', 'administrativo', 'profeso
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(56, 189, 248, 0.35);
         }
 
-        /* Burbuja Deshabilitada */
         .level-bubble.disabled {
             opacity: 0.4;
             filter: grayscale(80%);
@@ -229,7 +275,6 @@ $rolUsuario = $user['rol'] ?? 'profesor'; // 'admin', 'administrativo', 'profeso
             border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* Colores por rol */
         .level-bubble.docente .bubble-icon {
             background: linear-gradient(135deg, #0284c7, #2563eb);
             color: #fff;
@@ -320,9 +365,14 @@ $rolUsuario = $user['rol'] ?? 'profesor'; // 'admin', 'administrativo', 'profeso
             </a>
         </div>
 
-        <!-- Intro de Bienvenida -->
+        <!-- Intro con Animación Suave y Desvanecida -->
         <div class="intro-section">
-            <h1>Sistema de Asistencia Valle Azul</h1>
+            <div class="brand-container">
+                <span class="brand-fixed">S</span><span class="word-block">istema&nbsp;</span>
+                <span class="brand-fixed">A</span><span class="word-block">sistencia&nbsp;</span>
+                <span class="brand-fixed">V</span><span class="word-block">alle&nbsp;</span>
+                <span class="brand-fixed">A</span><span class="word-block">zul</span>
+            </div>
             <p>Seleccione el nivel operativo habilitado para su cuenta institucional.</p>
         </div>
 
