@@ -143,7 +143,7 @@
             <div class="stat-card">
                 <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
                 <div class="stat-info">
-                    <h3><?php echo $stats['usuarios']; ?></h3>
+                    <h3><?php echo $stats['total']; ?></h3>
                     <p>Total Usuarios</p>
                 </div>
             </div>

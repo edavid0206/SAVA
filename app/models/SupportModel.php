@@ -79,7 +79,7 @@ class SupportModel {
         $db = new Database();
         $pdo = $db->getConnection();
         try {
-            $stmt = $pdo->query("SELECT * FROM system_logs ORDER BY fecha DESC LIMIT 50");
+            $stmt = $pdo->query("SELECT * FROM system_logs ORDER BY fecha DESC ");
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
             return [];
@@ -89,10 +89,10 @@ class SupportModel {
     public static function getStats() {
         $db = new Database();
         $pdo = $db->getConnection();
-        $stats = ['total' => 0, 'docentes' => 0, 'admins' => 0, 'db_size' => 0];
+        $stats = ['total' => 0, 'usuarios' => 0, 'docentes' => 0, 'admins' => 0, 'db_size' => 0];
         try {
             $stmt = $pdo->query("SELECT COUNT(*) as t FROM usuarios");
-            $stats['total'] = $stmt->fetch(\PDO::FETCH_ASSOC)['t'] ?? 0;
+            $count = $stmt->fetch(\PDO::FETCH_ASSOC)['t'] ?? 0; $stats['total'] = $count; $stats['usuarios'] = $count;
             
             $stmt = $pdo->query("SELECT COUNT(*) as t FROM usuarios WHERE rol = 'profesor'");
             $stats['docentes'] = $stmt->fetch(\PDO::FETCH_ASSOC)['t'] ?? 0;

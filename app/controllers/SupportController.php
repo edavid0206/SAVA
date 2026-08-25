@@ -74,7 +74,7 @@ class SupportController {
 
             try {
                 SupportModel::createUser($data);
-                self::registrarLog('CREAR USUARIO', "Se creó el usuario institucional: {$data['usuario']} ({$data['nombre']} {$data['apellidos']})");
+                self::registrarLog('CREAR USUARIO', "Se creó el usuario institucional: {$data['usuario']} ({$data['nombre']} {$data['apellidos']}) con rol {$data['rol']}");
                 header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Usuario creado exitosamente."));
             } catch (\Exception $e) {
                 header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("Error al crear usuario: Cédula o usuario duplicados."));
@@ -129,7 +129,7 @@ class SupportController {
 
             try {
                 SupportModel::updateUser($id, $data);
-                self::registrarLog('ACTUALIZAR USUARIO', "Se actualizaron los datos del usuario ID {$id} ({$data['usuario']})");
+                self::registrarLog('ACTUALIZAR USUARIO', "Se actualizaron los datos del usuario ID {$id} ({$data['usuario']}) - Rol: {$data['rol']}");
                 header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Usuario actualizado correctamente."));
             } catch (\Exception $e) {
                 header("Location: /sistema/public/index.php?route=soporte-editar&id={$id}&error=" . urlencode("Error al actualizar: Cédula o usuario duplicados."));
@@ -148,7 +148,7 @@ class SupportController {
         if ($id) {
             try {
                 SupportModel::toggleUserStatus($id);
-                self::registrarLog('CAMBIAR ESTADO', "Se cambió el estado del usuario ID {$id}");
+                self::registrarLog('CAMBIO DE ESTADO', "Se modificó el estado de activación (Activo/Inactivo) del usuario ID {$id}");
                 header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Estado del usuario modificado correctamente."));
             } catch (\Exception $e) {
                 header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("Error al cambiar estado."));
@@ -157,18 +157,18 @@ class SupportController {
         }
     }
 
-        public function deleteUser() {
+    public function deleteUser() {
         if (session_status() === PHP_SESSION_NONE) session_start();
+        if (!isset($_SESSION['user']) || $_SESSION['user']['rol'] !== 'admin') {
             header("Location: /sistema/public/index.php?route=login"); exit();
         }
 
         $id = $_GET['id'] ?? null;
         if ($id) {
             try {
-                $db = new \App\Config\Database();
+                $db = new Database();
                 $pdo = $db->getConnection();
                 
-                // Evitar que el administrador se elimine a sí mismo
                 if ((int)$id === (int)$_SESSION['user']['id']) {
                     header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("No puede eliminar su propia cuenta activa."));
                     exit();
@@ -176,7 +176,7 @@ class SupportController {
 
                 $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
                 $stmt->execute([$id]);
-                self::registrarLog('ELIMINAR USUARIO', "Se eliminó el usuario ID {$id}");
+                self::registrarLog('ELIMINAR USUARIO', "Se eliminó de la base de datos el usuario ID {$id}");
                 header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Usuario eliminado correctamente."));
             } catch (\Exception $e) {
                 header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("No se puede eliminar el usuario porque tiene registros asociados."));
@@ -184,13 +184,15 @@ class SupportController {
             exit();
         }
     }
-        public function backupDatabase() {
+
+    public function backupDatabase() {
         if (session_status() === PHP_SESSION_NONE) session_start();
+        if (!isset($_SESSION['user']) || $_SESSION['user']['rol'] !== 'admin') {
             header("Location: /sistema/public/index.php?route=login"); exit();
         }
 
         try {
-            $db = new \App\Config\Database();
+            $db = new Database();
             $pdo = $db->getConnection();
             
             $tables = [];
@@ -199,29 +201,19 @@ class SupportController {
                 $tables[] = $row[0];
             }
 
-            $sqlScript = "-- Backup Base de Datos SAVA
--- Fecha: " . date('Y-m-d H:i:s') . "
-
-";
-            $sqlScript .= "SET FOREIGN_KEY_CHECKS=0;
-
-";
+            $sqlScript = "-- Backup Base de Datos SAVA\n-- Fecha: " . date('Y-m-d H:i:s') . "\n\n";
+            $sqlScript .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
 
             foreach ($tables as $table) {
                 $row2 = $pdo->query("SHOW CREATE TABLE {$table}")->fetch(\PDO::FETCH_NUM);
-                $sqlScript .= "
-
-" . $row2[1] . ";
-
-";
+                $sqlScript .= "\n\n" . $row2[1] . ";\n\n";
                 
                 $result = $pdo->query("SELECT * FROM {$table}");
                 while ($row = $result->fetch(\PDO::FETCH_NUM)) {
                     $sqlScript .= "INSERT INTO {$table} VALUES(";
                     for ($j = 0; $j < count($row); $j++) {
                         $row[$j] = addslashes($row[$j]);
-                        $row[$j] = str_replace("
-", "\n", $row[$j]);
+                        $row[$j] = str_replace("\n", "\\n", $row[$j]);
                         if (isset($row[$j])) {
                             $sqlScript .= '"' . $row[$j] . '"';
                         } else {
@@ -229,12 +221,10 @@ class SupportController {
                         }
                         if ($j < (count($row) - 1)) { $sqlScript .= ','; }
                     }
-                    $sqlScript .= ");
-";
+                    $sqlScript .= ");\n";
                 }
             }
-            $sqlScript .= "
-SET FOREIGN_KEY_CHECKS=1;";
+            $sqlScript .= "\nSET FOREIGN_KEY_CHECKS=1;";
 
             self::registrarLog('RESPALDO BD', "Generación y descarga de copia de seguridad .sql");
 
