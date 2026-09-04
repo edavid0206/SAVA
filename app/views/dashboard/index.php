@@ -381,7 +381,7 @@ $rolUsuario = $user['rol'] ?? 'profesor'; // 'admin', 'administrativo', 'profeso
 
             <!-- 1. NIVEL DOCENTE -->
             <?php 
-                $docenteActive = ($rolUsuario === 'profesor' || $rolUsuario === 'admin');
+                $docenteActive = ($rolUsuario === 'profesor');
                 $docenteClass = $docenteActive ? 'active docente' : 'disabled docente';
                 $docenteLink = $docenteActive ? '/sistema/public/index.php?route=docente-panel' : '#';
             ?>

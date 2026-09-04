@@ -105,8 +105,8 @@
             <p>Administración general del sistema, bases de datos y control de usuarios institucionales.</p>
         </div>
         <div class="nav-buttons">
-            <a href="/sistema/public/index.php?route=dashboard" class="btn-action">
-                <i class="fa-solid fa-arrow-left"></i> Selector de Niveles
+            <a href="/sistema/public/index.php?route=dashboard" class="btn-action" title="Volver al Selector / Dashboard">
+                <i class="fa-solid fa-arrow-left"></i> Selector de Roles
             </a>
             <a href="/sistema/public/index.php?route=logout" class="btn-action btn-danger">
                 <i class="fa-solid fa-power-off"></i> Salir
@@ -132,9 +132,7 @@
         <button class="tab-btn" onclick="switchTab(event, 'tab-directory')" id="btn-tab-directory">
             <i class="fa-solid fa-address-book"></i> Directorio de Usuarios
         </button>
-        <button class="tab-btn" onclick="switchTab(event, 'tab-logs')" id="btn-tab-logs">
-            <i class="fa-solid fa-clock-rotate-left"></i> Logs y Auditoría
-        </button>
+
     </div>
 
     <!-- PESTAÑA 1: RESUMEN Y SERVIDOR -->
@@ -143,28 +141,28 @@
             <div class="stat-card">
                 <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
                 <div class="stat-info">
-                    <h3><?php echo $stats['total']; ?></h3>
+                    <h3><?php echo $stats['total'] ?? 0; ?></h3>
                     <p>Total Usuarios</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #059669, #0d9488);"><i class="fa-solid fa-chalkboard-user"></i></div>
                 <div class="stat-info">
-                    <h3><?php echo $stats['docentes']; ?></h3>
+                    <h3><?php echo $stats['docentes'] ?? 0; ?></h3>
                     <p>Docentes Registrados</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #7c3aed, #4f46e5);"><i class="fa-solid fa-shield-halved"></i></div>
                 <div class="stat-info">
-                    <h3><?php echo $stats['admins']; ?></h3>
+                    <h3><?php echo $stats['admins'] ?? 0; ?></h3>
                     <p>Administradores</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="background: linear-gradient(135deg, #ea580c, #ca8a04);"><i class="fa-solid fa-database"></i></div>
                 <div class="stat-info">
-                    <h3><?php echo $stats['db_size']; ?> MB</h3>
+                    <h3><?php echo $stats['db_size'] ?? 0; ?> MB</h3>
                     <p>Tamaño Base de Datos</p>
                 </div>
             </div>
@@ -177,18 +175,12 @@
             <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
                 <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.08); padding: 15px 20px; border-radius: 14px; flex: 1; min-width: 200px;">
                     <span style="font-size: 0.78rem; color: #94a3b8; display: block; text-transform: uppercase;">Versión PHP</span>
-                    <strong style="font-size: 1.1rem; color: #38bdf8;"><?php echo $serverInfo['php_version']; ?></strong>
+                    <strong style="font-size: 1.1rem; color: #38bdf8;"><?php echo $serverInfo['php_version'] ?? PHP_VERSION; ?></strong>
                 </div>
                 <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.08); padding: 15px 20px; border-radius: 14px; flex: 1; min-width: 200px;">
                     <span style="font-size: 0.78rem; color: #94a3b8; display: block; text-transform: uppercase;">Espacio Libre en Disco</span>
-                    <strong style="font-size: 1.1rem; color: #34d399;"><?php echo $serverInfo['disk_free']; ?> / <?php echo $serverInfo['disk_total']; ?></strong>
+                    <strong style="font-size: 1.1rem; color: #34d399;"><?php echo ($serverInfo['disk_free'] ?? 'N/A') . ' / ' . ($serverInfo['disk_total'] ?? 'N/A'); ?></strong>
                 </div>
-            </div>
-
-            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <a href="/sistema/public/index.php?route=soporte-backup" class="btn-action" style="background: linear-gradient(135deg, #0284c7, #2563eb); border: none; padding: 12px 22px;">
-                    <i class="fa-solid fa-download"></i> Descargar Respaldo de Base de Datos (.sql)
-                </a>
             </div>
         </div>
     </div>
@@ -196,29 +188,36 @@
     <!-- PESTAÑA 2: REGISTRAR USUARIO -->
     <div id="tab-register" class="tab-content">
         <div class="content-card">
-            <h3><i class="fa-solid fa-user-plus"></i> Registrar Nuevo Usuario Institucional (Consulta TSE)</h3>
+            <h3><i class="fa-solid fa-user-plus"></i> Registrar Nuevo Usuario Institucional</h3>
             <form action="/sistema/public/index.php?route=soporte-crear-usuario" method="POST">
                 <div class="form-grid">
-                    <div>
-                        <input type="text" id="cedulaInput" name="cedula" class="form-control" placeholder="Cédula (Ej. 10xxxxxxxx)" maxlength="12" required>
-                        <div id="tseLoading" class="loading-tse"><i class="fa-solid fa-spinner fa-spin"></i> Consultando padrón electoral...</div>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: #38bdf8;">Cédula *</label>
+                        <input type="text" id="cedulaInput" name="cedula" class="form-control" placeholder="Ej: 101230456" maxlength="12" required>
+                        <div id="tseLoading" class="loading-tse"><i class="fa-solid fa-spinner fa-spin"></i> Consultando Padrón...</div>
                     </div>
-                    <div>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: #38bdf8;">Nombre(s) *</label>
                         <input type="text" id="nombreInput" name="nombre" class="form-control" placeholder="Nombre" required>
                     </div>
-                    <div>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: #38bdf8;">Apellidos *</label>
                         <input type="text" id="apellidosInput" name="apellidos" class="form-control" placeholder="Apellidos" required>
                     </div>
-                    <div>
-                        <input type="text" id="usuarioInput" name="usuario" class="form-control" placeholder="Usuario (Ej. ana.mora)" required>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: #38bdf8;">Usuario *</label>
+                        <input type="text" id="usuarioInput" name="usuario" class="form-control" placeholder="Número de cédula" required>
                     </div>
-                    <div>
-                        <input type="email" name="correo" class="form-control" placeholder="Correo Institucional">
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: #38bdf8;">Correo Institucional</label>
+                        <input type="email" name="correo" class="form-control" placeholder="correo@mep.go.cr">
                     </div>
-                    <div>
-                        <input type="password" name="password" class="form-control" placeholder="Contraseña Temporal" required>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: #38bdf8;">Contraseña Temporal *</label>
+                        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
                     </div>
-                    <div>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-size: 0.8rem; font-weight: 600; color: #38bdf8;">Rol de Usuario *</label>
                         <select name="rol" class="form-control">
                             <option value="profesor">Docente</option>
                             <option value="administrativo">Administrativo</option>
@@ -226,21 +225,21 @@
                         </select>
                     </div>
                 </div>
-                <button type="submit" class="btn-action" style="background: linear-gradient(135deg, #0284c7, #2563eb); border: none; padding: 12px 25px; margin-top: 5px;">
+                <button type="submit" class="btn-action" style="background: linear-gradient(135deg, #0284c7, #2563eb); border: none; padding: 12px 25px; margin-top: 15px;">
                     <i class="fa-solid fa-floppy-disk"></i> Guardar Usuario
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- PESTAÑA 3: DIRECTORIO DE USUARIOS -->
+        <!-- PESTAÑA 3: DIRECTORIO DE USUARIOS -->
     <div id="tab-directory" class="tab-content">
         <div class="content-card" id="directoryCard">
             <h3>
                 <span><i class="fa-solid fa-address-book"></i> Directorio de Usuarios</span>
                 <div class="search-box">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="searchInput" placeholder="Filtrar por nombre, cédula, rol..." onkeyup="filterTable('searchInput', 'userTable')">
+                    <input type="text" id="searchInput" placeholder="Filtrar por nombre, cédula..." onkeyup="filterTable('searchInput', 'userTable')">
                 </div>
             </h3>
             <div class="table-responsive">
@@ -258,38 +257,36 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($usuarios as $u): ?>
-                        <tr>
-                            <td>#<?php echo $u['id']; ?></td>
-                            <td><?php echo htmlspecialchars($u['cedula']); ?></td>
-                            <td><strong><?php echo htmlspecialchars($u['nombre'] . ' ' . $u['apellidos']); ?></strong></td>
-                            <td><code><?php echo htmlspecialchars($u['usuario']); ?></code></td>
-                            <td><?php echo htmlspecialchars($u['correo']); ?></td>
-                            <td>
-                                <span class="badge-rol <?php echo ($u['rol'] === 'admin') ? 'badge-admin' : (($u['rol'] === 'administrativo') ? 'badge-administrativo' : 'badge-profesor'); ?>">
-                                    <?php echo htmlspecialchars($u['rol']); ?>
-                                </span>
-                            </td>
-                            <td>
-                                <span style="color: <?php echo $u['estado'] ? '#34d399' : '#fca5a5'; ?>;">
-                                    <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> <?php echo $u['estado'] ? 'Activo' : 'Inactivo'; ?>
-                                </span>
-                            </td>
-                            <td>
-                                <div style="display: flex; gap: 6px;">
-                                    <a href="/sistema/public/index.php?route=soporte-editar&id=<?php echo $u['id']; ?>" class="btn-table btn-edit" title="Editar Usuario">
-                                        <i class="fa-solid fa-pen-to-square"></i> Editar
-                                    </a>
-                                    <a href="/sistema/public/index.php?route=soporte-cambiar-estado&id=<?php echo $u['id']; ?>" class="btn-table btn-toggle" title="Cambiar Estado">
-                                        <i class="fa-solid fa-rotate"></i>
-                                    </a>
-                                    <a href="/sistema/public/index.php?route=soporte-eliminar&id=<?php echo $u['id']; ?>" class="btn-table btn-del" onclick="return confirm('¿Está seguro de eliminar este usuario?');" title="Eliminar Usuario">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
+                        <?php if (!empty($usuarios)): ?>
+                            <?php foreach ($usuarios as $u): ?>
+                            <tr>
+                                <td>#<?php echo $u['id']; ?></td>
+                                <td><?php echo htmlspecialchars($u['cedula']); ?></td>
+                                <td><strong><?php echo htmlspecialchars($u['nombre'] . ' ' . $u['apellidos']); ?></strong></td>
+                                <td><code><?php echo htmlspecialchars($u['usuario']); ?></code></td>
+                                <td><?php echo htmlspecialchars($u['correo']); ?></td>
+                                <td>
+                    <span class="badge-rol <?php 
+                        if ($u['rol'] === 'soporte' || $u['rol'] === 'admin') echo 'badge-admin';
+                        elseif ($u['rol'] === 'administrativo') echo 'badge-administrativo';
+                        else echo 'badge-profesor';
+                    ?>">
+                        <?php echo htmlspecialchars($u['rol']); ?>
+                    </span>
+                </td>
+                                <td><span style="color: <?php echo $u['estado'] ? '#34d399' : '#fca5a5'; ?>;"><?php echo $u['estado'] ? 'Activo' : 'Inactivo'; ?></span></td>
+                                <td>
+                                    <div style="display: flex; gap: 6px;">
+                                        <a href="/sistema/public/index.php?route=soporte-editar&id=<?php echo $u['id']; ?>" class="btn-table btn-edit" title="Editar"><i class="fa-solid fa-pen"></i></a>
+                                        <a href="/sistema/public/index.php?route=soporte-toggle&id=<?php echo $u['id']; ?>" class="btn-table btn-toggle" title="Cambiar Estado"><i class="fa-solid fa-power-off"></i></a>
+                                        <?php if ((int)$u['id'] !== (int)($_SESSION['user']['id'] ?? 0)): ?>
+                                        <a href="/sistema/public/index.php?route=soporte-eliminar&id=<?php echo $u['id']; ?>" class="btn-table btn-del" onclick="return confirm('¿Estás seguro de eliminar este usuario?');" title="Eliminar"><i class="fa-solid fa-trash"></i></a>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -301,28 +298,23 @@
         <div class="content-card">
             <h3>
                 <span>
-                    <i class="fa-solid fa-clock-rotate-left"></i> Historial de Auditoría y Accesos 
+                    <i class="fa-solid fa-clock-rotate-left"></i> Historial de Auditoría
                     <span class="live-indicator" style="margin-left: 10px;"><span class="live-dot"></span> En Vivo</span>
                 </span>
-                <div class="search-box">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="searchLogsInput" placeholder="Buscar por usuario, acción, IP..." onkeyup="filterTable('searchLogsInput', 'logsTable')">
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchLogsInput" placeholder="Buscar por acción, usuario..." onkeyup="filterTable('searchLogsInput', 'logsTable')">
+                    </div>
+                    <a href="/sistema/public/index.php?route=soporte-limpiar-logs" class="btn-action btn-danger" onclick="return confirm('¿Estás completamente seguro de vaciar todo el historial de auditoría?');" title="Eliminar Todos los Logs" style="padding: 10px 14px;">
+                        <i class="fa-solid fa-trash-can"></i> Limpiar Historial
+                    </a>
                 </div>
             </h3>
 
-            <!-- Botones de Filtro Rápido -->
-            <div class="logs-filters">
-                <div class="logs-filter-group">
-                    <button class="filter-btn active" onclick="filterLogs('TODOS', this)">Todos</button>
-                    <button class="filter-btn" onclick="filterLogs('INICIO DE SESIÓN', this)">Logins</button>
-                    <button class="filter-btn" onclick="filterLogs('CIERRE DE SESIÓN', this)">Logouts</button>
-                    <button class="filter-btn" onclick="filterLogs('CAMBIO DE ESTADO', this)">Estados</button>
-                    <button class="filter-btn" onclick="filterLogs('CREAR USUARIO', this)">Creaciones</button>
-                    <button class="filter-btn" onclick="filterLogs('ELIMINAR USUARIO', this)">Eliminaciones</button>
-                    <button class="filter-btn" onclick="filterLogs('RESPALDO BD', this)">Respaldos</button>
-                </div>
-                <button class="filter-btn" onclick="refreshLogsManual()" title="Actualizar ahora" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
-                    <i class="fa-solid fa-sync"></i> Actualizar
+            <div class="logs-filters" style="justify-content: flex-end; margin-bottom: 15px;">
+                <button class="filter-btn" onclick="refreshLogsManual()" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8;">
+                    <i class="fa-solid fa-sync"></i> Actualizar Manual
                 </button>
             </div>
 
@@ -344,13 +336,13 @@
                                 <td>#<?php echo $log['id']; ?></td>
                                 <td><span class="badge-log"><?php echo htmlspecialchars($log['accion']); ?></span></td>
                                 <td><?php echo htmlspecialchars($log['detalles']); ?></td>
-                                <td><code><?php echo htmlspecialchars($log['ip_address']); ?></code></td>
+                                <td><code><?php echo htmlspecialchars($log['ip_address'] ?? 'N/A'); ?></code></td>
                                 <td><?php echo htmlspecialchars($log['created_at']); ?></td>
                             </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" style="text-align: center; color: #94a3b8; padding: 20px;">No hay registros de auditoría disponibles aún.</td>
+                                <td colspan="5" style="text-align: center; color: #94a3b8; padding: 20px;">No hay registros de auditoría.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -359,157 +351,93 @@
         </div>
     </div>
 
-    <script>
-        // Función reutilizable de búsqueda en tablas
-        function filterTable(inputId, tableId) {
-            const input = document.getElementById(inputId);
-            const filter = input.value.toLowerCase();
-            const table = document.getElementById(tableId);
-            const tr = table.getElementsByTagName('tr');
-
-            for (let i = 1; i < tr.length; i++) {
-                let visible = false;
-                const td = tr[i].getElementsByTagName('td');
-                for (let j = 0; j < td.length; j++) {
-                    if (td[j]) {
-                        const txtValue = td[j].textContent || td[j].innerText;
-                        if (txtValue.toLowerCase().indexOf(filter) > -1) {
-                            visible = true;
-                            break;
+<script>
+    document.getElementById("cedulaInput").addEventListener("blur", function() {
+        const cedula = this.value.trim();
+        const loadingDiv = document.getElementById("tseLoading");
+        
+        if (cedula.length >= 9) {
+            loadingDiv.style.display = "block";
+            fetch("https://api.hacienda.go.cr/fe/ae?identificacion=" + cedula)
+                .then(response => response.json())
+                .then(data => {
+                    loadingDiv.style.display = "none";
+                    if (data && data.nombre) {
+                        let partes = data.nombre.trim().split(" ");
+                        let nombres = "";
+                        let apellidos = "";
+                        
+                        // Si el padrón devuelve Nombres primero (ej: Nombre1 Nombre2 Apellido1 Apellido2)
+                        if (partes.length >= 4) {
+                            nombres = partes[0] + " " + partes[1];
+                            apellidos = partes.slice(2).join(" ");
+                        } else if (partes.length === 3) {
+                            nombres = partes[0];
+                            apellidos = partes[1] + " " + partes[2];
+                        } else if (partes.length === 2) {
+                            nombres = partes[0];
+                            apellidos = partes[1];
+                        } else {
+                            nombres = data.nombre;
+                            apellidos = "";
                         }
+                        
+                        document.getElementById("nombreInput").value = nombres;
+                        document.getElementById("apellidosInput").value = apellidos;
+                        document.getElementById("usuarioInput").value = cedula;
+                    }
+                })
+                .catch(error => {
+                    loadingDiv.style.display = "none";
+                    console.error("Error al consultar la cédula:", error);
+                });
+        }
+    });
+
+    function filterTable(inputId, tableId) {
+        const input = document.getElementById(inputId);
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById(tableId);
+        const tr = table.getElementsByTagName("tr");
+        for (let i = 1; i < tr.length; i++) {
+            let visible = false;
+            const td = tr[i].getElementsByTagName("td");
+            for (let j = 0; j < td.length; j++) {
+                if (td[j]) {
+                    const txtValue = td[j].textContent || td[j].innerText;
+                    if (txtValue.toLowerCase().indexOf(filter) > -1) {
+                        visible = true;
+                        break;
                     }
                 }
-                tr[i].style.display = visible ? '' : 'none';
             }
+            tr[i].style.display = visible ? "" : "none";
         }
+    }
 
-        // Filtro rápido por tipo de acción en la tabla de logs
-        function filterLogs(accionTipo, btnElement) {
-            document.querySelectorAll('.logs-filter-group .filter-btn').forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
 
-            const table = document.getElementById('logsTable');
-            const tr = table.getElementsByTagName('tr');
 
-            for (let i = 1; i < tr.length; i++) {
-                if (accionTipo === 'TODOS') {
-                    tr[i].style.display = '';
-                } else {
-                    const badge = tr[i].querySelector('.badge-log');
-                    if (badge) {
-                        const txt = badge.textContent || badge.innerText;
-                        tr[i].style.display = (txt.trim() === accionTipo) ? '' : 'none';
-                    }
-                }
-            }
+    function switchTab(evt, tabId) {
+        const contents = document.querySelectorAll(".tab-content");
+        contents.forEach(content => content.classList.remove("active"));
+        const buttons = document.querySelectorAll(".tab-btn");
+        buttons.forEach(btn => btn.classList.remove("active"));
+        document.getElementById(tabId).classList.add("active");
+        if (evt && evt.currentTarget) {
+            evt.currentTarget.classList.add("active");
+        } else {
+            const btn = document.getElementById("btn-" + tabId);
+            if (btn) btn.classList.add("active");
         }
+        localStorage.setItem("support_active_tab", tabId);
+    }
 
-        // --- AUTO-REFRESCO DE LOGS CADA 5 SEGUNDOS ---
-        function refreshLogs() {
-            const logsTab = document.getElementById('tab-logs');
-            if (logsTab && logsTab.classList.contains('active')) {
-                fetch(window.location.href)
-                    .then(response => response.text())
-                    .then(html => {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        const newLogsBody = doc.getElementById('logsTableBody');
-                        if (newLogsBody) {
-                            document.getElementById('logsTableBody').innerHTML = newLogsBody.innerHTML;
-                        }
-                    })
-                    .catch(err => console.error("Error al actualizar logs en vivo:", err));
-            }
+    document.addEventListener("DOMContentLoaded", function() {
+        const savedTab = localStorage.getItem("support_active_tab");
+        if (savedTab && document.getElementById(savedTab)) {
+            switchTab(null, savedTab);
         }
-
-        function refreshLogsManual() {
-            refreshLogs();
-        }
-
-        setInterval(refreshLogs, 5000);
-
-        function switchTab(evt, tabId) {
-            const contents = document.querySelectorAll('.tab-content');
-            contents.forEach(content => content.classList.remove('active'));
-
-            const buttons = document.querySelectorAll('.tab-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-
-            document.getElementById(tabId).classList.add('active');
-            if (evt && evt.currentTarget) {
-                evt.currentTarget.classList.add('active');
-            } else {
-                const btn = document.getElementById('btn-' + tabId);
-                if (btn) btn.classList.add('active');
-            }
-
-            localStorage.setItem('support_active_tab', tabId);
-        }
-
-        document.addEventListener("DOMContentLoaded", function() {
-            const savedTab = localStorage.getItem('support_active_tab');
-            if (savedTab && document.getElementById(savedTab)) {
-                switchTab(null, savedTab);
-            }
-
-            const alertMsg = document.getElementById('alertMessage');
-            const alertErr = document.getElementById('alertError');
-
-            if (alertMsg || alertErr) {
-                const tableCard = document.getElementById('directoryCard');
-                if (tableCard) {
-                    tableCard.classList.add('table-flash');
-                }
-
-                setTimeout(() => {
-                    if (alertMsg) {
-                        alertMsg.classList.add('fade-out');
-                        setTimeout(() => alertMsg.remove(), 500);
-                    }
-                    if (alertErr) {
-                        alertErr.classList.add('fade-out');
-                        setTimeout(() => alertErr.remove(), 500);
-                    }
-                }, 3000);
-            }
-        });
-
-        // Script de consulta de cédula limpio
-        document.getElementById('cedulaInput').addEventListener('blur', function() {
-            let cedula = this.value.trim();
-            if (cedula.length >= 9) {
-                let loadingEl = document.getElementById('tseLoading');
-                loadingEl.style.display = 'block';
-
-                fetch(`https://api.hacienda.go.cr/fe/ae?identificacion=${cedula}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        loadingEl.style.display = 'none';
-                        if (data && data.nombre) {
-                            let partesNombre = data.nombre.trim().replace(/\s+/g, ' ').split(' ');
-                            if (partesNombre.length >= 3) {
-                                let apellido2 = partesNombre.pop();
-                                let apellido1 = partesNombre.pop();
-                                let nombreReal = partesNombre.join(' ');
-
-                                document.getElementById('nombreInput').value = nombreReal;
-                                document.getElementById('apellidosInput').value = `${apellido1} ${apellido2}`;
-                                
-                                let primerNombre = partesNombre[0].toLowerCase();
-                                let primerApellido = apellido1.toLowerCase();
-                                document.getElementById('usuarioInput').value = `${primerNombre}.${primerApellido}`;
-                            } else {
-                                document.getElementById('nombreInput').value = data.nombre;
-                                document.getElementById('apellidosInput').value = "";
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        loadingEl.style.display = 'none';
-                        console.warn("No se pudo consultar el padrón automáticamente, ingrese los datos manualmente.");
-                    });
-            }
-        });
-    </script>
+    });
+</script>
 </body>
 </html>

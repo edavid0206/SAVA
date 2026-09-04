@@ -27,6 +27,7 @@ require_once $baseDir . '/app/models/User.php';
 require_once $baseDir . '/app/models/SupportModel.php';
 require_once $baseDir . '/app/models/StudentModel.php';
 require_once $baseDir . '/app/models/TeacherModel.php';
+require_once $baseDir . '/app/models/AcademicModel.php';
 require_once $baseDir . '/app/controllers/AuthController.php';
 require_once $baseDir . '/app/controllers/SupportController.php';
 require_once $baseDir . '/app/controllers/AdminController.php';
@@ -79,9 +80,15 @@ switch ($route) {
         $adminController->index();
         break;
     case 'admin-actualizar-estudiante':
+    case 'admin-promover-estudiante':
+        $adminController->promoverEstudianteAdmin();
+        break;
         $adminController->updateStudentAdmin();
         break;
     case 'admin-toggle-guia':
+    case 'admin-actualizar-guia':
+        $adminController->actualizarGuiaAdmin();
+        break;
         $adminController->toggleGuiaAdmin();
         break;
     case 'admin-crear-docente':

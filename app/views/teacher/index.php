@@ -18,22 +18,25 @@
 
         .dashboard-container h2 { font-size: 1.2rem; color: #94a3b8; margin-bottom: 20px; font-weight: 500; }
         
-        .toolbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .tool-card { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 25px; text-decoration: none; color: #fff; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); }
-        .tool-card:hover { transform: translateY(-5px); background: rgba(30, 41, 59, 0.8); border-color: rgba(56, 189, 248, 0.4); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4); }
-        .tool-card .icon { font-size: 2.2rem; margin-bottom: 15px; }
-        .tool-card h3 { font-size: 1.2rem; margin-bottom: 8px; color: #f8fafc; font-weight: 600; }
-        .tool-card p { font-size: 0.85rem; color: #94a3b8; line-height: 1.4; }
-        .tool-card.disabled { opacity: 0.5; pointer-events: none; }
+        .alert-box { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; padding: 20px; margin-bottom: 25px; }
+        .alert-box h3 { color: #fca5a5; font-size: 1.05rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .alert-item { background: rgba(15, 23, 42, 0.6); padding: 10px 15px; border-radius: 10px; margin-bottom: 8px; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 
-        .secciones-box { background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 20px; padding: 25px; }
+        .secciones-box { background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 20px; padding: 25px; margin-bottom: 25px; }
         .secciones-box h3 { color: #38bdf8; margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
         .seccion-item { display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.6); padding: 15px 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); margin-bottom: 10px; flex-wrap: wrap; gap: 15px; }
         .btn-group-actions { display: flex; gap: 10px; }
         .btn-asistencia { background: linear-gradient(135deg, #0284c7, #2563eb); color: #fff; padding: 10px 18px; border-radius: 10px; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: transform 0.2s; }
         .btn-asistencia:hover { transform: translateY(-2px); }
-        .btn-reporte { background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.3); color: #34d399; }
-        .btn-reporte:hover { background: rgba(52, 211, 153, 0.3); color: #fff; }
+
+        .conducta-form-box { background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 20px; padding: 25px; }
+        .conducta-form-box h3 { color: #c084fc; margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; }
+        .form-group select, .form-group input, .form-group textarea { width: 100%; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; padding: 10px 14px; border-radius: 10px; font-size: 0.9rem; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .btn-submit { background: linear-gradient(135deg, #9333ea, #c084fc); color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        .btn-submit:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -46,56 +49,76 @@
     </header>
 
     <main class="dashboard-container">
-        <h2>Panel de Herramientas Docentes</h2>
-        <div class="toolbar">
-            <div class="tool-card" style="border-color: #38bdf8;">
-                <div class="icon">🗒️</div>
-                <div>
-                    <h3>Gestión de Asistencia</h3>
-                    <p>Seleccione su sección asignada para pasar lista diaria o registrar ausencias.</p>
-                </div>
+        <h2>Panel de Gestión Académica y Docente</h2>
+
+        <?php if (!empty($alertasAusentismo)): ?>
+            <div class="alert-box">
+                <h3><i class="fa-solid fa-triangle-exclamation"></i> Alertas Tempranas de Ausentismo (&ge; 20% en Sección Guía)</h3>
+                <?php foreach ($alertasAusentismo as $alt): ?>
+                    <div class="alert-item">
+                        <span><strong><?php echo htmlspecialchars($alt['estudiante']['nombre'] . ' ' . $alt['estudiante']['apellidos']); ?></strong> (Cédula: <?php echo htmlspecialchars($alt['estudiante']['cedula']); ?>)</span>
+                        <span style="color: #fca5a5; font-weight: 600;"><?php echo $alt['ausencias']; ?> ausencias de <?php echo $alt['total_lecciones']; ?> lecciones (<?php echo $alt['porcentaje']; ?>%)</span>
+                    </div>
+                <?php endforeach; ?>
             </div>
-
-            <a href="#" class="tool-card disabled" title="Próximamente">
-                <div class="icon">💯</div>
-                <div>
-                    <h3>Registrar Conducta</h3>
-                    <p>Notas de conducta de sus secciones correspondientes.</p>
-                </div>
-            </a>
-
-            <a href="#" class="tool-card disabled" title="Próximamente">
-                <div class="icon">🕒</div>
-                <div>
-                    <h3>Mi Horario</h3>
-                    <p>Horario de lecciones asignado para la semana.</p>
-                </div>
-            </a>
-        </div>
+        <?php endif; ?>
 
         <div class="secciones-box">
-            <h3><i class="fa-solid fa-list-check"></i> Sus Secciones y Asignaturas Asignadas</h3>
+            <h3><i class="fa-solid fa-list-check"></i> Carga Académica y Asistencias</h3>
             <?php if (empty($asignaciones)): ?>
-                <p style="color: #94a3b8; padding: 15px 0;">No tiene secciones asignadas actualmente.</p>
+                <p style="color: #94a3b8; padding: 10px 0;">No tiene secciones asignadas actualmente.</p>
             <?php else: ?>
                 <?php foreach ($asignaciones as $asig): ?>
                     <div class="seccion-item">
                         <div>
                             <strong style="font-size: 1.05rem; color: #fff;">Sección <?php echo htmlspecialchars($asig['seccion_nombre']); ?></strong>
-                            <span style="color: #94a3b8; font-size: 0.85rem; margin-left: 10px;">&bull; <?php echo htmlspecialchars($asig['materia_nombre']); ?> (<?php echo htmlspecialchars($asig['nivel_nombre']); ?>)</span>
+                            <span style="color: #94a3b8; font-size: 0.85rem; margin-left: 10px;">&bull; <?php echo htmlspecialchars($asig['nivel_nombre']); ?></span>
                         </div>
                         <div class="btn-group-actions">
-                            <a href="/sistema/public/index.php?route=docente-asistencia&asignacion_id=<?php echo $asig['asignacion_id']; ?>" class="btn-asistencia">
+                            <a href="/sistema/public/index.php?route=docente-asistencia&asignacion_id=<?php echo $asig['id']; ?>" class="btn-asistencia">
                                 <i class="fa-solid fa-clipboard-user"></i> Pasar Lista
-                            </a>
-                            <a href="/sistema/public/index.php?route=docente-reporte-historial&asignacion_id=<?php echo $asig['asignacion_id']; ?>" class="btn-asistencia btn-reporte">
-                                <i class="fa-solid fa-chart-pie"></i> Historial / Reporte
                             </a>
                         </div>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
+
+        <?php if ($seccionGuia && !empty($estudiantesGuia)): ?>
+            <div class="conducta-form-box">
+                <h3><i class="fa-solid fa-pen-to-square"></i> Registro de Conducta / Observaciones (Profesor Guía: Sección <?php echo htmlspecialchars($seccionGuia['seccion_nombre']); ?>)</h3>
+                <form action="/sistema/public/index.php?route=docente-guardar-conducta" method="POST">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="estudiante_id">Estudiante:</label>
+                            <select name="estudiante_id" id="estudiante_id" required>
+                                <option value="">Seleccione un estudiante...</option>
+                                <?php foreach ($estudiantesGuia as $est): ?>
+                                    <option value="<?php echo $est['id']; ?>"><?php echo htmlspecialchars($est['apellidos'] . ', ' . $est['nombre']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipo">Tipo de Registro:</label>
+                            <select name="tipo" id="tipo" required>
+                                <option value="observacion">Observación general</option>
+                                <option value="merito">Mérito / Reconocimiento</option>
+                                <option value="demerito">Demérito / Falta</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="puntaje">Puntaje / Demérito:</label>
+                            <input type="number" name="puntaje" id="puntaje" value="0" min="-50" max="50">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="observacion">Detalle de la Observación:</label>
+                        <textarea name="observacion" id="observacion" placeholder="Describa el motivo o comportamiento observado..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit"><i class="fa-solid fa-floppy-disk"></i> Guardar Registro de Conducta</button>
+                </form>
+            </div>
+        <?php endif; ?>
     </main>
 
 </body>

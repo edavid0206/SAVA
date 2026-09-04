@@ -122,7 +122,7 @@ class SupportController {
                 'password' => trim($_POST['password'] ?? '')
             ];
 
-            if (!$id || empty($data['cedula']) || empty($data['usuario']) || empty($data['nombre'])) {
+            if (!$id || empty($data['cedula']) || empty($data['nombre'])) {
                 header("Location: /sistema/public/index.php?route=soporte-editar&id={$id}&error=" . urlencode("Complete los campos obligatorios."));
                 exit();
             }
@@ -132,7 +132,7 @@ class SupportController {
                 self::registrarLog('ACTUALIZAR USUARIO', "Se actualizaron los datos del usuario ID {$id} ({$data['usuario']}) - Rol: {$data['rol']}");
                 header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Usuario actualizado correctamente."));
             } catch (\Exception $e) {
-                header("Location: /sistema/public/index.php?route=soporte-editar&id={$id}&error=" . urlencode("Error al actualizar: Cédula o usuario duplicados."));
+                header("Location: /sistema/public/index.php?route=soporte-editar&id={$id}&error=" . urlencode("Error DB: " . $e->getMessage()));
             }
             exit();
         }
@@ -174,12 +174,14 @@ class SupportController {
                     exit();
                 }
 
+                // Eliminación física directa asegurando limpieza de duplicados
                 $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
                 $stmt->execute([$id]);
-                self::registrarLog('ELIMINAR USUARIO', "Se eliminó de la base de datos el usuario ID {$id}");
+                
+                self::registrarLog('ELIMINAR USUARIO', "Se eliminó permanentemente de la base de datos el usuario ID {$id}");
                 header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Usuario eliminado correctamente."));
             } catch (\Exception $e) {
-                header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("No se puede eliminar el usuario porque tiene registros asociados."));
+                header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("No se puede eliminar: el usuario tiene registros asociados en el sistema."));
             }
             exit();
         }
@@ -236,5 +238,21 @@ class SupportController {
             header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("Error al generar el respaldo de la base de datos."));
             exit();
         }
+    }
+
+    public function clearLogs() {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (!isset($_SESSION['user']) || $_SESSION['user']['rol'] !== 'admin') {
+            header("Location: /sistema/public/index.php?route=login"); exit();
+        }
+
+        try {
+            SupportModel::clearSystemLogs();
+            self::registrarLog('LIMPIAR LOGS', "Se vació el historial completo de auditoría del sistema.");
+            header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Historial de auditoría eliminado correctamente."));
+        } catch (\Exception $e) {
+            header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("Error al limpiar los logs."));
+        }
+        exit();
     }
 }

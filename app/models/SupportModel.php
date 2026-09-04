@@ -79,7 +79,7 @@ class SupportModel {
         $db = new Database();
         $pdo = $db->getConnection();
         try {
-            $stmt = $pdo->query("SELECT * FROM system_logs ORDER BY fecha DESC ");
+            $stmt = $pdo->query("SELECT * FROM system_logs ORDER BY fecha DESC");
             return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\Exception $e) {
             return [];
@@ -92,7 +92,9 @@ class SupportModel {
         $stats = ['total' => 0, 'usuarios' => 0, 'docentes' => 0, 'admins' => 0, 'db_size' => 0];
         try {
             $stmt = $pdo->query("SELECT COUNT(*) as t FROM usuarios");
-            $count = $stmt->fetch(\PDO::FETCH_ASSOC)['t'] ?? 0; $stats['total'] = $count; $stats['usuarios'] = $count;
+            $count = $stmt->fetch(\PDO::FETCH_ASSOC)['t'] ?? 0; 
+            $stats['total'] = $count; 
+            $stats['usuarios'] = $count;
             
             $stmt = $pdo->query("SELECT COUNT(*) as t FROM usuarios WHERE rol = 'profesor'");
             $stats['docentes'] = $stmt->fetch(\PDO::FETCH_ASSOC)['t'] ?? 0;
@@ -117,5 +119,12 @@ class SupportModel {
             'disk_free' => $disk_free,
             'disk_total' => $disk_total
         ];
+    }
+
+    public static function clearSystemLogs() {
+        $db = new Database();
+        $pdo = $db->getConnection();
+        $stmt = $pdo->prepare("DELETE FROM system_logs");
+        return $stmt->execute();
     }
 }

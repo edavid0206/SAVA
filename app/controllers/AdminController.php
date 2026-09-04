@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Config\Database;
 use App\Models\StudentModel;
+use App\Models\AcademicModel;
 
 class AdminController {
 
@@ -19,16 +20,11 @@ class AdminController {
             $responsable = " [Realizado por: {$nombreUsuario} {$apellidosUsuario} (Rol: {$rolUsuario})]";
             $detallesCompletos = $detalles . $responsable;
 
-            $ip = $_SERVER['HTTP_CLIENT_IP'] 
-                  ?? $_SERVER['HTTP_X_FORWARDED_FOR'] 
-                  ?? $_SERVER['REMOTE_ADDR'] 
-                  ?? 'Desconocida';
+            $ip = $_SERVER['REMOTE_ADDR'] ?? 'Desconocida';
 
             $stmt = $pdo->prepare("INSERT INTO system_logs (usuario_id, accion, detalles, ip_address) VALUES (?, ?, ?, ?)");
             $stmt->execute([$usuarioId, $accion, $detallesCompletos, $ip]);
-        } catch (\Exception $e) {
-            // Silenciar error
-        }
+        } catch (\Exception $e) {}
     }
 
     public function index() {
@@ -49,6 +45,7 @@ class AdminController {
         $estudiantes = [];
         $materias = [];
         $niveles = [];
+        $periodoActivo = AcademicModel::getPeriodoActivo();
 
         try {
             $stmtNiveles = $pdo->query("SELECT * FROM niveles ORDER BY id");
@@ -65,7 +62,6 @@ class AdminController {
             $stmtMaterias = $pdo->query("SELECT * FROM materias ORDER BY nombre");
             $materias = $stmtMaterias->fetchAll(\PDO::FETCH_ASSOC);
 
-            // Listado de Docentes Activos con sus materias y IDs de materias asignadas
             $stmtDocentes = $pdo->query("SELECT u.* FROM usuarios u WHERE u.rol = 'profesor' AND u.estado = 1 ORDER BY u.apellidos, u.nombre");
             $todosLosDocentes = $stmtDocentes->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -84,14 +80,65 @@ class AdminController {
                 ORDER BY n.id, s.nombre, e.apellidos");
             $estudiantes = $stmtEstudiantes->fetchAll(\PDO::FETCH_ASSOC);
 
-        } catch (\Exception $e) {
-            // Manejar error
-        }
+        } catch (\Exception $e) {}
 
         $mensaje = $_GET['mensaje'] ?? '';
         $error = $_GET['error'] ?? '';
 
         require_once __DIR__ . '/../views/admin/index.php';
+    }
+
+    public function promoverEstudianteAdmin() {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (!isset($_SESSION['user']) || !in_array($_SESSION['user']['rol'], ['admin', 'administrativo'])) {
+            header("Location: /sistema/public/index.php?route=login"); exit();
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $estudianteId = $_POST['estudiante_id'] ?? null;
+            $nuevaSeccionId = $_POST['nueva_seccion_id'] ?? null;
+            $estadoMatricula = trim($_POST['estado_matricula'] ?? 'promovido');
+            $observacion = trim($_POST['observacion'] ?? 'Promoción de fin de año lectivo');
+            $periodoActivo = AcademicModel::getPeriodoActivo();
+
+            if (!$estudianteId || !$nuevaSeccionId || !$periodoActivo) {
+                header("Location: /sistema/public/index.php?route=admin-panel&error=" . urlencode("Datos incompletos para procesar la promoción del estudiante."));
+                exit();
+            }
+
+            try {
+                $db = new Database();
+                $pdo = $db->getConnection();
+                
+                // Obtener el nuevo nivel asociado a la sección destino
+                $stmtSec = $pdo->prepare("SELECT nivel_id FROM secciones WHERE id = ? LIMIT 1");
+                $stmtSec->execute([$nuevaSeccionId]);
+                $secData = $stmtSec->fetch(\PDO::FETCH_ASSOC);
+
+                if (!$secData) {
+                    throw new \Exception("Sección destino no válida.");
+                }
+
+                $resultado = AcademicModel::promoverEstudiante(
+                    $estudianteId, 
+                    $secData['nivel_id'], 
+                    $nuevaSeccionId, 
+                    $periodoActivo['id'], 
+                    $estadoMatricula, 
+                    $observacion
+                );
+
+                if ($resultado) {
+                    self::registrarLog('PROMOCIÓN ESTUDIANTE', "Se procesó la promoción/estado ({$estadoMatricula}) del estudiante ID {$estudianteId} a la nueva sección ID {$nuevaSeccionId}");
+                    header("Location: /sistema/public/index.php?route=admin-panel&mensaje=" . urlencode("Estudiante promovido y registrado en historial correctamente."));
+                } else {
+                    header("Location: /sistema/public/index.php?route=admin-panel&error=" . urlencode("No se pudo completar la transacción de promoción."));
+                }
+            } catch (\Exception $e) {
+                header("Location: /sistema/public/index.php?route=admin-panel&error=" . urlencode("Error en promoción: " . $e->getMessage()));
+            }
+            exit();
+        }
     }
 
     public function storeTeacher() {
@@ -105,7 +152,7 @@ class AdminController {
             $nombre = trim($_POST['nombre'] ?? '');
             $apellidos = trim($_POST['apellidos'] ?? '');
             $correo = trim($_POST['correo'] ?? '');
-            $password = password_hash($cedula, PASSWORD_DEFAULT); // Contraseña inicial por defecto su cédula
+            $password = password_hash($cedula, PASSWORD_DEFAULT);
             $materiasSeleccionadas = $_POST['materias'] ?? [];
 
             if (empty($cedula) || empty($nombre) || empty($apellidos) || empty($correo)) {
@@ -192,7 +239,6 @@ class AdminController {
             try {
                 $db = new Database();
                 $pdo = $db->getConnection();
-                // Desactivar usuario (soft delete) en lugar de eliminar físicamente para preservar historiales
                 $stmt = $pdo->prepare("UPDATE usuarios SET estado = 0 WHERE id = ? AND rol = 'profesor'");
                 $stmt->execute([$id]);
                 self::registrarLog('GESTIÓN DOCENTE', "Se desactivó/eliminó el docente ID {$id}");
@@ -202,11 +248,6 @@ class AdminController {
             }
             exit();
         }
-    }
-
-    public function updateTeacherMaterias() {
-        // Redirigido a updateTeacher
-        $this->updateTeacher();
     }
 
     public function storeMateria() {
@@ -319,6 +360,35 @@ class AdminController {
                 header("Location: /sistema/public/index.php?route=admin-panel&mensaje=" . urlencode("Estudiante actualizado correctamente."));
             } catch (\Exception $e) {
                 header("Location: /sistema/public/index.php?route=admin-panel&error=" . urlencode("Error al actualizar estudiante: Cédula duplicada."));
+            }
+            exit();
+        }
+    }
+
+    public function actualizarGuiaAdmin() {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        if (!isset($_SESSION["user"]) || !in_array($_SESSION["user"]["rol"], ["admin", "administrativo"])) {
+            header("Location: /sistema/public/index.php?route=login"); exit();
+        }
+
+        if ($_SERVER["REQUEST_METHOD"] === "POST") {
+            $seccionId = $_POST["seccion_id"] ?? null;
+            $docenteId = $_POST["docente_guia_id"] ?? null;
+
+            if (!$seccionId || !$docenteId) {
+                header("Location: /sistema/public/index.php?route=admin-panel&error=" . urlencode("Datos incompletos para actualizar el docente guía."));
+                exit();
+            }
+
+            try {
+                $db = new Database();
+                $pdo = $db->getConnection();
+                $stmt = $pdo->prepare("UPDATE secciones SET docente_guia_id = ?, guia_habilitado = 1 WHERE id = ?");
+                $stmt->execute([$docenteId, $seccionId]);
+                self::registrarLog("GESTIÓN SECCIÓN", "Se actualizó el docente guía de la sección ID {$seccionId} al docente ID {$docenteId}");
+                header("Location: /sistema/public/index.php?route=admin-panel&mensaje=" . urlencode("Docente guía actualizado exitosamente."));
+            } catch (\Exception $e) {
+                header("Location: /sistema/public/index.php?route=admin-panel&error=" . urlencode("Error al actualizar el docente guía."));
             }
             exit();
         }
