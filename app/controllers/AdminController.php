@@ -47,6 +47,13 @@ class AdminController {
         $niveles = [];
         $periodoActivo = AcademicModel::getPeriodoActivo();
 
+        // Variables para el Dashboard Gerencial
+        $totalRegular = 0;
+        $totalPN = 0;
+        $totalEstudiantes = 0;
+        $docentesSinLista = [];
+        $topAusentismo = [];
+
         try {
             $stmtNiveles = $pdo->query("SELECT * FROM niveles ORDER BY id");
             $niveles = $stmtNiveles->fetchAll(\PDO::FETCH_ASSOC);
@@ -58,6 +65,15 @@ class AdminController {
                 JOIN niveles n ON s.nivel_id = n.id 
                 ORDER BY n.id, s.nombre");
             $secciones = $stmtSecciones->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Conteo de secciones (Regular vs Plan Nacional)
+            foreach ($secciones as $sec) {
+                if (stripos($sec['seccion_nombre'], 'PN') !== false || stripos($sec['nivel_nombre'], 'PN') !== false) {
+                    $totalPN++;
+                } else {
+                    $totalRegular++;
+                }
+            }
 
             $stmtMaterias = $pdo->query("SELECT * FROM materias ORDER BY nombre");
             $materias = $stmtMaterias->fetchAll(\PDO::FETCH_ASSOC);
@@ -79,6 +95,24 @@ class AdminController {
                 JOIN niveles n ON s.nivel_id = n.id 
                 ORDER BY n.id, s.nombre, e.apellidos");
             $estudiantes = $stmtEstudiantes->fetchAll(\PDO::FETCH_ASSOC);
+
+            $totalEstudiantes = count($estudiantes);
+
+            // Docentes que no han registrado asistencia recientemente (últimos 3 días o sin registro en asistencia)
+            $stmtSinLista = $pdo->query("SELECT u.id, u.nombre, u.apellidos, u.correo FROM usuarios u WHERE u.rol = 'profesor' AND u.estado = 1 AND u.id NOT IN (SELECT DISTINCT docente_id FROM asistencia WHERE fecha >= CURDATE() - INTERVAL 3 DAY)");
+            $docentesSinLista = $stmtSinLista->fetchAll(\PDO::FETCH_ASSOC);
+
+            // Top 10 estudiantes con mayor ausentismo
+            $stmtTopAusencia = $pdo->query("SELECT e.nombre, e.apellidos, n.nombre AS nivel_nombre, s.nombre AS seccion_nombre, COUNT(a.id) AS total_ausencias 
+                FROM asistencia a 
+                JOIN estudiantes e ON a.estudiante_id = e.id 
+                JOIN secciones s ON e.seccion_id = s.id 
+                JOIN niveles n ON s.nivel_id = n.id 
+                WHERE a.estado = 'Ausente' 
+                GROUP BY e.id, e.nombre, e.apellidos, n.nombre, s.nombre 
+                ORDER BY total_ausencias DESC 
+                LIMIT 10");
+            $topAusentismo = $stmtTopAusencia->fetchAll(\PDO::FETCH_ASSOC);
 
         } catch (\Exception $e) {}
 
@@ -110,7 +144,6 @@ class AdminController {
                 $db = new Database();
                 $pdo = $db->getConnection();
                 
-                // Obtener el nuevo nivel asociado a la sección destino
                 $stmtSec = $pdo->prepare("SELECT nivel_id FROM secciones WHERE id = ? LIMIT 1");
                 $stmtSec->execute([$nuevaSeccionId]);
                 $secData = $stmtSec->fetch(\PDO::FETCH_ASSOC);

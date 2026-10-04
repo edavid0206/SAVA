@@ -6,26 +6,19 @@ use App\Models\SupportModel;
 
 class SupportController {
 
-    private static function registrarLog($accion, $detalles) {
+    private static function registrarLog($accion, $detalles, $coordenadas = null) {
         try {
             $db = new Database();
             $pdo = $db->getConnection();
 
             $usuarioId = $_SESSION['user']['id'] ?? null;
-            $nombreUsuario = $_SESSION['user']['nombre'] ?? 'Desconocido';
-            $apellidosUsuario = $_SESSION['user']['apellidos'] ?? '';
-            $rolUsuario = $_SESSION['user']['rol'] ?? '';
-            
-            $responsable = " [Realizado por: {$nombreUsuario} {$apellidosUsuario} (Rol: {$rolUsuario})]";
-            $detallesCompletos = $detalles . $responsable;
-
             $ip = $_SERVER['HTTP_CLIENT_IP'] 
-                  ?? $_SERVER['HTTP_X_FORWARDED_FOR'] 
-                  ?? $_SERVER['REMOTE_ADDR'] 
-                  ?? 'Desconocida';
+                ?? $_SERVER['HTTP_X_FORWARDED_FOR'] 
+                ?? $_SERVER['REMOTE_ADDR'] 
+                ?? 'Desconocida';
 
-            $stmt = $pdo->prepare("INSERT INTO system_logs (usuario_id, accion, detalles, ip_address) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$usuarioId, $accion, $detallesCompletos, $ip]);
+            $stmt = $pdo->prepare("INSERT INTO system_logs (usuario_id, accion, detalles, ip_address, coordenadas) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$usuarioId, $accion, $detalles, $ip, $coordenadas]);
         } catch (\Exception $e) {}
     }
 
@@ -66,6 +59,7 @@ class SupportController {
                 'password' => trim($_POST['password'] ?? ''),
                 'rol' => trim($_POST['rol'] ?? 'profesor')
             ];
+            $coordenadas = trim($_POST['coordenadas_gps'] ?? null);
 
             if (empty($data['cedula']) || empty($data['usuario']) || empty($data['nombre']) || empty($data['password'])) {
                 header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("Complete todos los campos obligatorios."));
@@ -74,7 +68,7 @@ class SupportController {
 
             try {
                 SupportModel::createUser($data);
-                self::registrarLog('CREAR USUARIO', "Se creó el usuario institucional: {$data['usuario']} ({$data['nombre']} {$data['apellidos']}) con rol {$data['rol']}");
+                self::registrarLog('CREAR USUARIO', "Creación de cuenta para {$data['nombre']} {$data['apellidos']} (@{$data['usuario']}) con rol {$data['rol']}", $coordenadas);
                 header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Usuario creado exitosamente."));
             } catch (\Exception $e) {
                 header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("Error al crear usuario: Cédula o usuario duplicados."));
@@ -121,6 +115,7 @@ class SupportController {
                 'rol' => trim($_POST['rol'] ?? 'profesor'),
                 'password' => trim($_POST['password'] ?? '')
             ];
+            $coordenadas = trim($_POST['coordenadas_gps'] ?? null);
 
             if (!$id || empty($data['cedula']) || empty($data['nombre'])) {
                 header("Location: /sistema/public/index.php?route=soporte-editar&id={$id}&error=" . urlencode("Complete los campos obligatorios."));
@@ -129,7 +124,7 @@ class SupportController {
 
             try {
                 SupportModel::updateUser($id, $data);
-                self::registrarLog('ACTUALIZAR USUARIO', "Se actualizaron los datos del usuario ID {$id} ({$data['usuario']}) - Rol: {$data['rol']}");
+                self::registrarLog('ACTUALIZAR USUARIO', "Modificación de datos para ID {$id} (@{$data['usuario']}) - Rol: {$data['rol']}", $coordenadas);
                 header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Usuario actualizado correctamente."));
             } catch (\Exception $e) {
                 header("Location: /sistema/public/index.php?route=soporte-editar&id={$id}&error=" . urlencode("Error DB: " . $e->getMessage()));
@@ -148,7 +143,7 @@ class SupportController {
         if ($id) {
             try {
                 SupportModel::toggleUserStatus($id);
-                self::registrarLog('CAMBIO DE ESTADO', "Se modificó el estado de activación (Activo/Inactivo) del usuario ID {$id}");
+                self::registrarLog('CAMBIO DE ESTADO', "Alternancia de estado activo/inactivo para el usuario ID {$id}");
                 header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Estado del usuario modificado correctamente."));
             } catch (\Exception $e) {
                 header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("Error al cambiar estado."));
@@ -174,11 +169,10 @@ class SupportController {
                     exit();
                 }
 
-                // Eliminación física directa asegurando limpieza de duplicados
                 $stmt = $pdo->prepare("DELETE FROM usuarios WHERE id = ?");
                 $stmt->execute([$id]);
                 
-                self::registrarLog('ELIMINAR USUARIO', "Se eliminó permanentemente de la base de datos el usuario ID {$id}");
+                self::registrarLog('ELIMINAR USUARIO', "Eliminación permanente del usuario ID {$id}");
                 header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Usuario eliminado correctamente."));
             } catch (\Exception $e) {
                 header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("No se puede eliminar: el usuario tiene registros asociados en el sistema."));
@@ -228,7 +222,7 @@ class SupportController {
             }
             $sqlScript .= "\nSET FOREIGN_KEY_CHECKS=1;";
 
-            self::registrarLog('RESPALDO BD', "Generación y descarga de copia de seguridad .sql");
+            self::registrarLog('RESPALDO BD', "Generación de copia de seguridad .sql");
 
             header('Content-Type: application/octet-stream');
             header('Content-Disposition: attachment; filename="backup_sava_' . date('Y-m-d_H-i-s') . '.sql"');
@@ -240,18 +234,26 @@ class SupportController {
         }
     }
 
-    public function clearLogs() {
+    public function optimizeSystem() {
         if (session_status() === PHP_SESSION_NONE) session_start();
         if (!isset($_SESSION['user']) || $_SESSION['user']['rol'] !== 'admin') {
             header("Location: /sistema/public/index.php?route=login"); exit();
         }
 
         try {
-            SupportModel::clearSystemLogs();
-            self::registrarLog('LIMPIAR LOGS', "Se vació el historial completo de auditoría del sistema.");
-            header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Historial de auditoría eliminado correctamente."));
+            $db = new Database();
+            $pdo = $db->getConnection();
+
+            $pdo->exec("OPTIMIZE TABLE usuarios, system_logs, docentes, estudiantes, secciones");
+
+            if (function_exists('opcache_reset')) {
+                opcache_reset();
+            }
+
+            self::registrarLog('OPTIMIZAR SISTEMA', "Optimización de tablas de la base de datos y limpieza de caché del servidor.");
+            header("Location: /sistema/public/index.php?route=soporte-panel&mensaje=" . urlencode("Sistema optimizado y caché limpiada exitosamente."));
         } catch (\Exception $e) {
-            header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("Error al limpiar los logs."));
+            header("Location: /sistema/public/index.php?route=soporte-panel&error=" . urlencode("Error al optimizar el sistema: " . $e->getMessage()));
         }
         exit();
     }

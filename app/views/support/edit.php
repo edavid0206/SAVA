@@ -19,8 +19,10 @@
         .btn-action { background: linear-gradient(135deg, #0284c7, #2563eb); border: none; color: #fff; padding: 12px 25px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; transition: all 0.3s; }
         .btn-action:hover { opacity: 0.9; transform: translateY(-2px); }
         .btn-secondary { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); margin-right: 10px; }
-        .alert-msg { padding: 12px 18px; border-radius: 12px; font-size: 0.88rem; margin-bottom: 20px; width: 100%; max-width: 600px; display: flex; align-items: center; gap: 10px; }
+        .alert-msg { padding: 12px 18px; border-radius: 12px; font-size: 0.88rem; margin-bottom: 20px; width: 100%; max-width: 600px; display: flex; align-items: center; gap: 10px; transition: opacity 0.5s ease, transform 0.5s ease; }
         .alert-error { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; }
+        .loading-tse { font-size: 0.78rem; color: #38bdf8; margin-top: 4px; display: none; }
+        .fade-out { opacity: 0; transform: translateY(-10px); }
     </style>
 </head>
 <body>
@@ -34,19 +36,20 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label>Cédula *</label>
-                    <input type="text" name="cedula" class="form-control" value="<?php echo htmlspecialchars($usuario['cedula'] ?? ''); ?>" required>
+                    <input type="text" id="cedulaInput" name="cedula" class="form-control" value="<?php echo htmlspecialchars($usuario['cedula'] ?? ''); ?>" maxlength="12" required>
+                    <div id="tseLoading" class="loading-tse"><i class="fa-solid fa-spinner fa-spin"></i> Consultando Padrón...</div>
                 </div>
                 <div class="form-group">
                     <label>Nombre(s) *</label>
-                    <input type="text" name="nombre" class="form-control" value="<?php echo htmlspecialchars($usuario['nombre'] ?? ''); ?>" required>
+                    <input type="text" id="nombreInput" name="nombre" class="form-control" value="<?php echo htmlspecialchars($usuario['nombre'] ?? ''); ?>" required>
                 </div>
                 <div class="form-group">
                     <label>Apellidos *</label>
-                    <input type="text" name="apellidos" class="form-control" value="<?php echo htmlspecialchars($usuario['apellidos'] ?? ''); ?>" required>
+                    <input type="text" id="apellidosInput" name="apellidos" class="form-control" value="<?php echo htmlspecialchars($usuario['apellidos'] ?? ''); ?>" required>
                 </div>
                 <div class="form-group">
                     <label>Usuario *</label>
-                    <input type="text" name="usuario" class="form-control" value="<?php echo htmlspecialchars($usuario['usuario'] ?? ''); ?>" required>
+                    <input type="text" id="usuarioInput" name="usuario" class="form-control" value="<?php echo htmlspecialchars($usuario['usuario'] ?? ''); ?>" required>
                 </div>
                 <div class="form-group">
                     <label>Correo Institucional</label>
@@ -75,5 +78,75 @@
             </div>
         </form>
     </div>
+
+<script>
+    function limpiarTextoParaUsuario(texto) {
+        return texto.toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9.]/g, "");
+    }
+
+    document.getElementById("cedulaInput").addEventListener("blur", function() {
+        const cedula = this.value.trim();
+        const loadingDiv = document.getElementById("tseLoading");
+        
+        if (cedula.length >= 9) {
+            loadingDiv.style.display = "block";
+            fetch("https://api.hacienda.go.cr/fe/ae?identificacion=" + cedula)
+                .then(response => response.json())
+                .then(data => {
+                    loadingDiv.style.display = "none";
+                    if (data && data.nombre) {
+                        let partes = data.nombre.trim().split(/\s+/);
+                        let nombres = "";
+                        let apellidos = "";
+                        
+                        if (partes.length >= 4) {
+                            nombres = partes[0] + " " + partes[1];
+                            apellidos = partes[2] + " " + partes[3];
+                        } else if (partes.length === 3) {
+                            nombres = partes[0];
+                            apellidos = partes[1] + " " + partes[2];
+                        } else if (partes.length === 2) {
+                            nombres = partes[0];
+                            apellidos = partes[1];
+                        } else {
+                            nombres = data.nombre;
+                            apellidos = "";
+                        }
+                       
+                        document.getElementById("nombreInput").value = nombres;
+                        document.getElementById("apellidosInput").value = apellidos;
+
+                        let primerNombre = partes[0] || "";
+                        let primerApellido = (partes.length >= 4) ? partes[2] : (partes.length === 3 ? partes[1] : (partes.length === 2 ? partes[1] : ""));
+                        
+                        let usuarioGenerado = limpiarTextoParaUsuario(primerNombre + "." + primerApellido);
+                        document.getElementById("usuarioInput").value = usuarioGenerado;
+                    }
+                })
+                .catch(error => {
+                    loadingDiv.style.display = "none";
+                    console.error("Error al consultar la cédula:", error);
+                });
+        }
+    });
+
+    document.getElementById("usuarioInput").addEventListener("input", function() {
+        this.value = limpiarTextoParaUsuario(this.value);
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const alertMessages = document.querySelectorAll(".alert-msg");
+        if (alertMessages.length > 0) {
+            setTimeout(function() {
+                alertMessages.forEach(alert => {
+                    alert.classList.add("fade-out");
+                    setTimeout(() => alert.remove(), 500);
+                });
+            }, 3000);
+        }
+    });
+</script>
 </body>
 </html>

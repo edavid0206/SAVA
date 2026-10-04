@@ -74,6 +74,9 @@ switch ($route) {
         $supportController->deleteUser();
         break;
     case 'soporte-backup':
+    case 'soporte-optimizar':
+        $supportController->optimizeSystem();
+        break;
         $supportController->backupDatabase();
         break;
     case 'admin-panel':

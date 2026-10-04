@@ -22,20 +22,6 @@
             --bubble-border: rgba(56, 189, 248, 0.25);
         }
 
-        [data-theme="light"] {
-            --bg-color: #f1f5f9;
-            --gradient-bg: linear-gradient(135deg, #e2e8f0, #cbd5e1, #f8fafc);
-            --card-bg: rgba(255, 255, 255, 0.85);
-            --card-border: rgba(0, 0, 0, 0.08);
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --input-bg: rgba(241, 245, 249, 0.8);
-            --input-border: rgba(0, 0, 0, 0.1);
-            --input-text: #0f172a;
-            --bubble-grad: radial-gradient(circle at 30% 30%, rgba(2, 132, 199, 0.25), rgba(56, 189, 248, 0.05));
-            --bubble-border: rgba(2, 132, 199, 0.2);
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -53,7 +39,6 @@
             overflow: hidden;
             position: relative;
             padding: 20px;
-            transition: background-color 0.4s ease, color 0.4s ease;
         }
 
         /* Fondo dinámico de burbujas interactivas */
@@ -67,7 +52,6 @@
             background: var(--gradient-bg);
             overflow: hidden;
             pointer-events: none;
-            transition: background 0.4s ease;
         }
 
         .bubble {
@@ -113,7 +97,6 @@
             padding: 40px 32px;
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
             animation: fadeInScale 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            transition: background 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
         }
 
         @keyframes fadeInScale {
@@ -123,7 +106,7 @@
 
         .login-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
         .login-header .logo-badge {
@@ -147,14 +130,12 @@
             color: var(--text-main);
             letter-spacing: -0.5px;
             margin-bottom: 8px;
-            transition: color 0.4s ease;
         }
 
         .login-header p {
             font-size: 0.88rem;
             color: var(--text-muted);
             line-height: 1.5;
-            transition: color 0.4s ease;
         }
 
         .alert-error {
@@ -173,7 +154,7 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .form-group label {
@@ -182,7 +163,6 @@
             font-weight: 600;
             color: var(--text-muted);
             margin-bottom: 8px;
-            transition: color 0.4s ease;
         }
 
         .input-wrapper {
@@ -220,6 +200,24 @@
             color: #38bdf8;
         }
 
+        .forgot-password-container {
+            text-align: right;
+            margin-bottom: 15px;
+            margin-top: -5px;
+        }
+
+        .forgot-password-link {
+            font-size: 0.8rem;
+            color: #38bdf8;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .forgot-password-link:hover {
+            color: #7dd3fc;
+            text-decoration: underline;
+        }
+
         .btn-submit {
             width: 100%;
             background: linear-gradient(135deg, #0284c7, #2563eb);
@@ -232,7 +230,7 @@
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
-            margin-top: 10px;
+            margin-top: 5px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -250,32 +248,32 @@
             margin-top: 25px;
             font-size: 0.8rem;
             color: var(--text-muted);
-            transition: color 0.4s ease;
         }
 
-        /* Botón de Cambio de Tema Estilo iPhone */
-        #theme-toggle {
+        /* Estilos para el Modal de Recuperación */
+        .modal-overlay {
+            display: none;
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            backdrop-filter: blur(10px);
-            color: var(--text-main);
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            z-index: 9999;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
         }
-        #theme-toggle:hover {
-            transform: scale(1.05);
-            border-color: #38bdf8;
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-card {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.7);
         }
     </style>
 </head>
@@ -283,11 +281,6 @@
 
     <!-- Fondo dinámico con burbujas interactivas -->
     <div class="bubbles-background" id="bubblesContainer"></div>
-
-    <!-- Botón Flotante de Cambio de Tema -->
-    <button id="theme-toggle" onclick="toggleTheme()" title="Cambiar Tema (Oscuro/Claro)">
-        <i id="theme-icon" class="fa-solid fa-moon"></i>
-    </button>
 
     <!-- Contenedor del Login -->
     <div class="login-container">
@@ -309,17 +302,21 @@
             <div class="form-group">
                 <label for="usuario">Usuario o Correo Institucional</label>
                 <div class="input-wrapper">
-                    <input type="text" id="usuario" name="usuario" class="form-control" placeholder="Ej. admin.valleazul" required autocomplete="username">
+                    <input type="text" id="usuario" name="usuario" class="form-control" placeholder="Ej. nombre.apellido" required autocomplete="username">
                     <i class="fa-solid fa-user"></i>
                 </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="margin-bottom: 10px;">
                 <label for="password">Contraseña de Acceso</label>
                 <div class="input-wrapper">
                     <input type="password" id="password" name="password" class="form-control" placeholder="••••••••••••" required autocomplete="current-password">
                     <i class="fa-solid fa-lock"></i>
                 </div>
+            </div>
+
+            <div class="forgot-password-container">
+                <a href="#" onclick="abrirModalRecuperar(event)" class="forgot-password-link">¿Olvidaste tu contraseña?</a>
             </div>
 
             <button type="submit" class="btn-submit">
@@ -333,33 +330,30 @@
         </div>
     </div>
 
+    <!-- MODAL DE RECUPERACIÓN DE CONTRASEÑA -->
+    <div id="modalRecuperar" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; color: #38bdf8; font-size: 1.15rem;">
+                <span><i class="fa-solid fa-key"></i> Recuperar Contraseña</span>
+                <button type="button" onclick="cerrarModalRecuperar()" style="background: none; border: none; color: #94a3b8; font-size: 1.25rem; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+            </h3>
+            <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; line-height: 1.4;">
+                Por motivos de seguridad institucional, comuníquese con la dirección o con el Departamento de Informática para restablecer sus credenciales de acceso.
+            </p>
+            <button type="button" onclick="cerrarModalRecuperar()" class="btn-submit" style="margin-top: 0;">
+                <i class="fa-solid fa-check">></i> Entendido
+            </button>
+        </div>
+    </div>
+
     <script>
-        // Sincronización de Tema (Estilo iPhone / Horario / Memoria)
-        function applyTheme(theme) {
-            if (theme === "light") {
-                document.documentElement.setAttribute("data-theme", "light");
-                document.getElementById("theme-icon").className = "fa-solid fa-sun";
-            } else {
-                document.documentElement.removeAttribute("data-theme");
-                document.getElementById("theme-icon").className = "fa-solid fa-moon";
-            }
+        function abrirModalRecuperar(e) {
+            e.preventDefault();
+            document.getElementById('modalRecuperar').classList.add('active');
         }
 
-        (function() {
-            const savedTheme = localStorage.getItem("sava_theme");
-            if (savedTheme) {
-                applyTheme(savedTheme);
-            } else {
-                const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-                applyTheme(prefersDark ? "dark" : "light");
-            }
-        })();
-
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute("data-theme");
-            const newTheme = currentTheme === "light" ? "dark" : "light";
-            localStorage.setItem("sava_theme", newTheme);
-            applyTheme(newTheme);
+        function cerrarModalRecuperar() {
+            document.getElementById('modalRecuperar').classList.remove('active');
         }
 
         // Lógica de burbujas interactivas
