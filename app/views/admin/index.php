@@ -74,7 +74,7 @@
         .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .kpi-card { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 15px; }
         .kpi-icon { width: 45px; height: 45px; border-radius: 10px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
-        .kpi-info h4 { font-size: 0.78rem; color: #94a3b8; font-weight: 500; text-transform: uppercase; }
+        .kpi-info h4 { font-size: 0.72rem; color: #94a3b8; font-weight: 500; text-transform: uppercase; }
         .kpi-info p { font-size: 1.3rem; font-weight: 700; color: #fff; }
 
         .search-box { position: relative; width: 100%; margin-top: 5px; }
@@ -215,7 +215,7 @@
                                     <tr>
                                         <td><strong><?php echo htmlspecialchars($doc['nombre'] . ' ' . $doc['apellidos']); ?></strong></td>
                                         <td><?php echo htmlspecialchars($doc['correo'] ?? 'N/A'); ?></td>
-                                        <td><span style="color: #fca5a5; font-size: 0.78rem;">Pendiente de pase de lista</span></td>
+                                        <td><span style="color: #fca5a5; font-size: 0.72rem;">Pendiente de pase de lista</span></td>
                                     </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
@@ -269,18 +269,18 @@
             <form action="/sistema/public/index.php?route=admin-crear-periodo" method="POST">
                 <div class="form-grid">
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Año Lectivo</label>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Año Lectivo</label>
                         <input type="number" name="anio" value="2026" required class="form-control">
                     </div>
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Semestre Activo</label>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Semestre Activo</label>
                         <select name="semestre" class="form-select">
                             <option value="1">I Semestre</option>
                             <option value="2">II Semestre (Rotación Talleres)</option>
                         </select>
                     </div>
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Descripción Oficial</label>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Descripción Oficial</label>
                         <input type="text" name="nombre" placeholder="Ej. Periodo Lectivo Oficial 2026" required class="form-control">
                     </div>
                 </div>
@@ -298,19 +298,19 @@
             <form action="/sistema/public/index.php?route=admin-crear-docente" method="POST">
                 <div class="form-grid">
                     <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8;">Cédula *</label>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: #38bdf8;">Cédula *</label>
                         <input type="text" name="cedula" class="form-control" placeholder="Cédula" required>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8;">Nombre(s) *</label>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: #38bdf8;">Nombre(s) *</label>
                         <input type="text" name="nombre" class="form-control" style="text-transform: uppercase;" placeholder="Nombre" required>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8;">Apellidos *</label>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: #38bdf8;">Apellidos *</label>
                         <input type="text" name="apellidos" class="form-control" style="text-transform: uppercase;" placeholder="Apellidos" required>
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8;">Correo Institucional</label>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: #38bdf8;">Correo Institucional</label>
                         <input type="email" name="correo" class="form-control" placeholder="correo@mep.go.cr">
                     </div>
                 </div>
@@ -382,7 +382,7 @@
             <form id="formAsignacionSeccion">
                 <div class="form-grid">
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Sección</label>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Sección</label>
                         <select class="form-select" name="seccion_id" required>
                             <option value="">-- Seleccione Sección --</option>
                             <?php if (!empty($secciones)): ?>
@@ -393,7 +393,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Asignatura</label>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Asignatura</label>
                         <select class="form-select" name="asignatura_id" required>
                             <option value="">-- Seleccione Asignatura --</option>
                             <?php if (!empty($materias)): ?>
@@ -404,7 +404,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Docente</label>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Docente</label>
                         <select class="form-select" name="docente_id" required>
                             <option value="">-- Seleccione Docente --</option>
                             <?php if (!empty($todosLosDocentes)): ?>
@@ -429,7 +429,7 @@
             <form action="/sistema/public/index.php?route=admin-actualizar-guia" method="POST">
                 <div class="form-grid">
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Docente Guía</label>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Docente Guía</label>
                         <select class="form-select" name="docente_guia_id" required>
                             <option value="">-- Seleccionar Docente --</option>
                             <?php if (!empty($todosLosDocentes)): ?>
@@ -440,7 +440,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Sección a Cargo</label>
+                        <label style="font-size: 0.72rem; font-weight: 600; color: #38bdf8; display: block; margin-bottom: 5px;">Sección a Cargo</label>
                         <select class="form-select" name="seccion_id" required>
                             <option value="">-- Seleccionar Sección --</option>
                             <?php if (!empty($secciones)): ?>
